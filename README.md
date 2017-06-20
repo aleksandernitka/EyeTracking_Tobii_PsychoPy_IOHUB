@@ -90,4 +90,4 @@ Upon completion of the experiment you should see a new hdf5 file being added to 
 ## Processing the HDF5 file
 Thanks to the codes we were sending to the iohub on each trials we are able to epoch the eyetracking data based on realted time vales. To process the data you need to have R installed on your machine, I assume a basic knowledge of R, you should know how to open an R script file, execture the code and then input one line of code into the R's console. 
 
-
+All the R function needs is the location of hdf5 files; it will get all the trials epoched and save output into a csv file. The output file may be quite big as it collects all trails for each participant; if your tracker is sampling at 300Hz that means that you can expect around 300 lines per second of experiment. You can filter data by trial number (and also link the data to the PsychoPy output file with experimental details) by the `trialNo` column.  
