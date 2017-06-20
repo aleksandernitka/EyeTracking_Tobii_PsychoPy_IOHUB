@@ -52,7 +52,7 @@ if expInfo['Eye Tracker']:
        print "!! Error starting ioHub: ",e," Exiting..."
        sys.exit(1)
 ```
-Please note that the above code uses a hardware configuration file 'tobii_std.yaml' which is specific to your tobii device. An example Tobii TX300 'tobii_std.yaml' file is included in this repo.
+Please note that the above code uses a hardware configuration file `tobii_std.yaml` which is specific to your tobii device. An example Tobii TX300 `tobii_std.yaml` file is included in this repo.
 
 We also need some code to exectuted in the **End Experiment** part:
 
@@ -68,7 +68,7 @@ if expInfo['Eye Tracker']:
     shutil.move(oldnhdf5, newhdf5)
 ```
 
-Now, the actual tracking part. The below code will start the tracker (and send an appropriate message to the iohub) at the beggining of the rutine and end tracking when the rutine ends. The below code assumes that you have one tracking period per trial. Add a new code element into trial routine and in **Begin Routine** add:
+Now, the actual tracking part. The below code will start the tracker (and send an appropriate message to the iohub) at the beggining of the routine and end tracking when the routine ends. The below code assumes that you have one tracking period per trial. Add a new code element into trial routine and in `Begin Routine` add:
 
 ```python
 if expInfo['Eye Tracker']:
