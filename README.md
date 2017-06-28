@@ -10,7 +10,10 @@ you experimental code needs a few blocks of extra code. First bit should be inse
 import os
 import shutil
 
-os.remove('events.hdf5')
+try:
+    os.remove('events.hdf5')
+except OSError:
+    pass
 
 if expInfo['Eye Tracker']:
     try:
