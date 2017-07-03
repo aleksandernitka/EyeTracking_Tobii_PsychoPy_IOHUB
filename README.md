@@ -43,11 +43,9 @@ if expInfo['Eye Tracker']:
             win.flip()
 
         ## Send some info about the experiment to the IOHUB
-        io.sendMessageEvent(text="IO_HUB EXPERIMENT_INFO START")
         io.sendMessageEvent(text="%s"%(expInfo['expName']))
         io.sendMessageEvent(text="DATE: %s"%(expInfo['date']))
         io.sendMessageEvent(text="SSID: %s"%(expInfo['participant']))
-        io.sendMessageEvent(text="IO_HUB EXPERIMENT_INFO END")
 
 
     except Exception, e:
