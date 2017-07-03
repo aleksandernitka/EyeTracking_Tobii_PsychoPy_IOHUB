@@ -1,9 +1,5 @@
 tobii.extractor = function(hdf5FilesPath) {
     
-    # TODO
-    # [ ] change code for grepl ssid to what is in psychopy
-    # [ ] trial start and end codes as per new psychopy code on github
-    # [ ] rm path from this code
      
     if ('rhdf5' %in% installed.packages() == FALSE){
         source("http://bioconductor.org/biocLite.R")
@@ -11,8 +7,6 @@ tobii.extractor = function(hdf5FilesPath) {
     }
     
     require('rhdf5')
-    
-    hdf5FilesPath = "~/Documents/git/Coder-Eyetracking-IOHUB-Psychopy"
     
     setwd(hdf5FilesPath)
     
