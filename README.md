@@ -75,7 +75,7 @@ Now, the actual tracking part. The below code will start the tracker (and send a
 if expInfo['Eye Tracker']:
     io.clearEvents('all')
     eyetracker.setRecordingState(True)
-    io.sendMessageEvent(text="tStart: %i" %(trials.thisN))
+    io.sendMessageEvent(text="tStart %i" %(trials.thisN))
 ```
 
 Then in the **End Routine** for the same code block add:
@@ -83,7 +83,7 @@ Then in the **End Routine** for the same code block add:
 ```python
 if expInfo['Eye Tracker']:
     eyetracker.setRecordingState(False)
-    io.sendMessageEvent(text="tEnd: %i" %(trials.thisN))
+    io.sendMessageEvent(text="tEnd %i" %(trials.thisN))
 ```
 
 Upon completion of the experiment you should see a new hdf5 file being added to the root directory this will be named 'hdf5_et_X_YYYY.hdf5' where X is your participant's id and YYYY is a date and time. If instead you see the 'events.hdf5' file then this means that either you have not included the **End Experiment** code or the experiment was termined before it run was meant to finish. 
