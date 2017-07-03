@@ -102,4 +102,10 @@ Thanks to the codes we were sending to the IOHUB on each trials we are able to e
 
 All the R function needs is the location of hdf5 files; it will get all the trials epoched and save output into a csv file. The output file may be quite big as it collects all trails for each participant; if your tracker is sampling at 300Hz that means that you can expect around 300 lines per second of tracking. 
 
-The output data is a raw and unfiltered output which can be filtered by trail number. You can also use the trial number to get all other trial info that has not been passed to IOHUB 
+The output data is a raw and unfiltered output which can be filtered by trail number and condition. You can also use the trial number to get all other trial info from the csv/xlsx PsychoPy output file. 
+
+To process the HDF5 output files make sure that you follow the PsychoPy method described above, then:
+* Open the R file with R Studio.
+* Highlight all contents of that file and run it.
+* Then in Console: `tobii.extractor("~/path/to/all/HDF5files")` and press enter
+* Function will give you updates on which file it's currently processing and when it finishes. New csv files (one per subject) will be created in the same folder which you have specified above. 
