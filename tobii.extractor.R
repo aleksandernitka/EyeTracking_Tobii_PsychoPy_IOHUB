@@ -45,19 +45,21 @@ tobii.extractor = function(hdf5FilesPath) {
         tmp.events = subset(tmp.events, grepl('Trial ',tmp.events$text))
         
         # Create start/end references
-        tmp.events$tStart = NA
-        tmp.events$tEnd   = NA
+        tmp.events$tStart   = NA
+        tmp.events$tEnd     = NA
         
         # Trial number extraction 
-        tmp.events$tNo = NA
-        tmp.df$tNo     = NA
+        tmp.events$tNo      = NA
+        tmp.df$tNo          = NA
+        tmp.df$Condition    = NA
         
         # Space for subject id
-        tmp.df$ssID    = NA
+        tmp.df$ssID         = NA
         
         for (l in 1:nrow(tmp.events)) {
             
             tmp.events$tNo[l] = as.numeric(strsplit(tmp.events$text[l], split = ' ')[[1]][2])
+            tmp.events$Condition[l] = strsplit(tmp.events$text[l], split = ' ')[[1]][3]
             
             if ((grepl('tStart ', tmp.events$text[l])) == TRUE) {
                 tmp.events$tStart[l] = tmp.events$time[l]
@@ -101,5 +103,6 @@ tobii.extractor = function(hdf5FilesPath) {
         
     }
     
+    message("Processing Completed.")
 
 }
