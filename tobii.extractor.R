@@ -36,7 +36,7 @@ tobii.extractor = function(hdf5FilesPath) {
         names(tmp.df) = names(tmp.eyetr)
         
         # Prepare Events, keep only start/end messages
-        tmp.events = subset(tmp.events, grepl('Trial ',tmp.events$text))
+        tmp.events = subset(tmp.events, grepl('trial ', tmp.events$text))
         
         # Create start/end references
         tmp.events$tStart   = NA
@@ -52,13 +52,13 @@ tobii.extractor = function(hdf5FilesPath) {
         
         for (l in 1:nrow(tmp.events)) {
             
-            tmp.events$tNo[l] = as.numeric(strsplit(tmp.events$text[l], split = ' ')[[1]][2])
-            tmp.events$Condition[l] = strsplit(tmp.events$text[l], split = ' ')[[1]][3]
+            tmp.events$tNo[l] = as.numeric(strsplit(tmp.events$text[l], split = ' ')[[1]][3])
+            tmp.events$Condition[l] = strsplit(tmp.events$text[l], split = ' ')[[1]][4]
             
-            if ((grepl('tStart ', tmp.events$text[l])) == TRUE) {
+            if ((grepl('trial Start ', tmp.events$text[l])) == TRUE) {
                 tmp.events$tStart[l] = tmp.events$time[l]
                 
-                if ((grepl('tEnd ', tmp.events$text[l+1])) == TRUE){
+                if ((grepl('trial End ', tmp.events$text[l+1])) == TRUE){
                     tmp.events$tEnd[l] = tmp.events$time[l+1]
                 }
                 
@@ -70,7 +70,7 @@ tobii.extractor = function(hdf5FilesPath) {
         }
         
         # Remove all 'trial end' messages
-        tmp.events = subset(tmp.events, grepl('tStart ',tmp.events$text))
+        tmp.events = subset(tmp.events, grepl('trial Start ',tmp.events$text))
         
         
         for(e in 1:nrow(tmp.events)) {
@@ -79,6 +79,8 @@ tobii.extractor = function(hdf5FilesPath) {
             tmp.raw.trial = subset(tmp.eyetr, tmp.eyetr$time >= tmp.events$tStart[e] & tmp.eyetr$time <= tmp.events$tEnd[e])
             
             tmp.raw.trial$tNo = tmp.events$tNo[e]
+            
+            tmp.raw.trial$Condition = tmp.events$Condition[e]
             
             tmp.raw.trial$ssID = ssid
             
