@@ -1,6 +1,16 @@
 tobii.extractor = function(hdf5FilesPath) {
     
-     
+    #/*
+    #* ----------------------------------------------------------------------------
+    #* "THE BEER-WARE LICENSE" (Revision 42):
+    #* <aleksander.nitka@nottingham.ac.uk> 
+    #* wrote this file. As long as you retain this notice you
+    #* can do whatever you want with this stuff. If we meet some day, and you think
+    #* this stuff is worth it, you can buy me a beer in return. Aleksander W. Nitka
+    #* ----------------------------------------------------------------------------
+    #*/
+        
+    
     if ('rhdf5' %in% installed.packages() == FALSE){
         source("http://bioconductor.org/biocLite.R")
         biocLite("rhdf5")    
@@ -91,6 +101,7 @@ tobii.extractor = function(hdf5FilesPath) {
         
         # Add ssid
         tmp.df$ssID = ssid
+        
         
         # Save file
         name = sprintf("ss%s_tobiiData", ssid)
