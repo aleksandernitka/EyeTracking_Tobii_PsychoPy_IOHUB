@@ -46,7 +46,8 @@ tobii.extractor = function(hdf5FilesPath) {
         names(tmp.df) = names(tmp.eyetr)
         
         # Prepare Events, keep only start/end messages
-        tmp.events = subset(tmp.events, grepl('trial ', tmp.events$text))
+        phrases = c('tStart ', 'tEnd ')
+        tmp.events = subset(tmp.events, grepl(paste(phrases, collapse = "|"), tmp.events$text))
         
         # Create start/end references
         tmp.events$tStart   = NA
@@ -65,10 +66,10 @@ tobii.extractor = function(hdf5FilesPath) {
             tmp.events$tNo[l] = as.numeric(strsplit(tmp.events$text[l], split = ' ')[[1]][3])
             tmp.events$Condition[l] = strsplit(tmp.events$text[l], split = ' ')[[1]][4]
             
-            if ((grepl('trial Start ', tmp.events$text[l])) == TRUE) {
+            if ((grepl('tStart ', tmp.events$text[l])) == TRUE) {
                 tmp.events$tStart[l] = tmp.events$time[l]
                 
-                if ((grepl('trial End ', tmp.events$text[l+1])) == TRUE){
+                if ((grepl('tEnd ', tmp.events$text[l+1])) == TRUE){
                     tmp.events$tEnd[l] = tmp.events$time[l+1]
                 }
                 
@@ -79,8 +80,14 @@ tobii.extractor = function(hdf5FilesPath) {
             
         }
         
+        for (x in 1:nrow(tmp.events)){
+            if ((grepl('tStart ', tmp.events$text[x])) == TRUE) {
+                tmp.events$Condition[x] = tmp.events$Condition[x+1]
+            }
+        }
+        
         # Remove all 'trial end' messages
-        tmp.events = subset(tmp.events, grepl('trial Start ',tmp.events$text))
+        tmp.events = subset(tmp.events, grepl('tStart ',tmp.events$text))
         
         
         for(e in 1:nrow(tmp.events)) {
