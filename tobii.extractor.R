@@ -1,122 +1,128 @@
-tobii.extractor = function(hdf5FilesPath) {
+tobii.extractor = function(hdf5FilesPath, extract = 'all', saveRdata = FALSE) {
     
-    #/*
-    #* ----------------------------------------------------------------------------
-    #* "THE BEER-WARE LICENSE" (Revision 42):
-    #* <aleksander.nitka@nottingham.ac.uk> 
-    #* wrote this file. As long as you retain this notice you
-    #* can do whatever you want with this stuff. If we meet some day, and you think
-    #* this stuff is worth it, you can buy me a beer in return. Aleksander W. Nitka
-    #* ----------------------------------------------------------------------------
-    #*/
-        
+    source('getpk.R', local = TRUE) # auto install and load packages
     
-    if ('rhdf5' %in% installed.packages() == FALSE){
-        source("http://bioconductor.org/biocLite.R")
-        biocLite("rhdf5")    
-    }
-    
-    require('rhdf5')
+    getpk(c('hdf5r'))
     
     setwd(hdf5FilesPath)
     
-    hdfFilesList = list.files(hdf5FilesPath, pattern = "\\.hdf5$")
+    hdfFilesList = list.files(pattern = "\\.hdf5$")
     
     if (length(hdfFilesList) == 0){
         
         return(message('No HDF5 files found in the directory provided.'))
     }
     
+    # Progress
+    pb = txtProgressBar(min = 0, max = length(hdfFilesList), initial = 0, style = 3) 
+    
     for (f in 1:length(hdfFilesList)) {
         
-        message(sprintf("Extracting file %i / %i - %s", f, length(hdfFilesList), hdfFilesList[f]))
-        
-        # Extract Events from hdf5
-        tmp.events = h5read(hdfFilesList[f], '/data_collection/events/experiment/MessageEvent')
-        
-        # Extract EyeTracking data from hdf5
-        tmp.eyetr  = h5read(hdfFilesList[f], '/data_collection/events/eyetracker/BinocularEyeSampleEvent')
+        df = H5File$new(hdfFilesList[f], mode="r")
+        # import eyetracker events
+        et = df[["data_collection/events/eyetracker/BinocularEyeSampleEvent"]]
+        et = et[] 
+        # import experiment evnts
+        ex = df[["data_collection/events/experiment/MessageEvent"]]
+        ex = ex[]
         
         # Get subejct id from Events
-        ssid = sapply(strsplit(grep('SSID: ', tmp.events$text, value = TRUE), split = ": "), "[", 2)
+        ssid = sapply(strsplit(grep('SSID: ', ex$text, value = TRUE), split = ": "), "[", 2)
+        # try to extract ssid from other names, but quit if not found an id
+        if (length(ssid) == 0){
+            ssid = sapply(strsplit(grep('SUBJECT ID: ', ex$text, value = TRUE), split = ": "), "[", 2)
 
-        
-        # Create DF for trials data
-        tmp.df = data.frame(matrix(ncol = ncol(tmp.eyetr)))
-        names(tmp.df) = names(tmp.eyetr)
+            if (length(ssid) == 0){
+                ssid = sapply(strsplit(grep('SUBJECT: ', ex$text, value = TRUE), split = ": "), "[", 2)
+
+                if (length(ssid) == 0){
+                    message(sprintf('Error. Could not extract ssid from the file %s', hdfFilesList[f]))
+                    stopifnot(length(ssid)>0)
+                }
+
+            }
+        }
+        # add leading 0 to ssid if 1:9
+        if (nchar(ssid) == 1){
+            ssid = paste('0', ssid, sep = '')
+        }
         
         # Prepare Events, keep only start/end messages
-        phrases = c('tStart ', 'tEnd ')
-        tmp.events = subset(tmp.events, grepl(paste(phrases, collapse = "|"), tmp.events$text))
+        # phrases = c('tStart ', 'tEnd ')
+        phrases = c('ts ', 'te ')
+        ex = subset(ex, grepl(paste(phrases, collapse = "|"), ex$text))
         
         # Create start/end references
-        tmp.events$tStart   = NA
-        tmp.events$tEnd     = NA
+        ex$tStart = NA
+        ex$tEnd = NA
+        ex$tDur = NA
         
         # Trial number extraction 
-        tmp.events$tNo      = NA
-        tmp.df$tNo          = NA
-        tmp.df$Condition    = NA
+        ex$tNo = NA
+        et$tNo = NA
+        et$Condition = NA
         
         # Space for subject id
-        tmp.df$ssID         = NA
+        et$ssID = NA
         
-        for (l in 1:nrow(tmp.events)) {
+        
+        for (l in 1:nrow(ex)) {
             
-            tmp.events$tNo[l] = as.numeric(strsplit(tmp.events$text[l], split = ' ')[[1]][3])
-            tmp.events$Condition[l] = strsplit(tmp.events$text[l], split = ' ')[[1]][4]
+            # tne below two lines will only work if those variables we need are at a specified location after
+            # the string is split by space. One may need to adjust this to work with their code
+            ex$tNo[l] = as.numeric(strsplit(ex$text[l], split = ' ')[[1]][3])
+            ex$Condition[l] = strsplit(ex$text[l], split = ' ')[[1]][4]
             
-            if ((grepl('tStart ', tmp.events$text[l])) == TRUE) {
-                tmp.events$tStart[l] = tmp.events$time[l]
+            if ((grepl('ts ', ex$text[l])) == TRUE) {
+                ex$tStart[l] = ex$time[l]
+                ex$Condition[] = ex$Condition[l+1]
                 
-                if ((grepl('tEnd ', tmp.events$text[l+1])) == TRUE){
-                    tmp.events$tEnd[l] = tmp.events$time[l+1]
+                if ((grepl('te ', ex$text[l+1])) == TRUE){
+                    ex$tEnd[l] = ex$time[l+1]
                 }
                 
                 else {
-                    message('trial start/end structure not valid')
+                    message(sprintf('trial start/end structure not valid: %s', hdfFilesList[f]))
                 }
             }
             
-        }
-        
-        for (x in 1:nrow(tmp.events)){
-            if ((grepl('tStart ', tmp.events$text[x])) == TRUE) {
-                tmp.events$Condition[x] = tmp.events$Condition[x+1]
-            }
+            ex$tDur[l] = ex$tEnd[l] - ex$tStart[l]
+            
         }
         
         # Remove all 'trial end' messages
-        tmp.events = subset(tmp.events, grepl('tStart ',tmp.events$text))
+        ex = subset(ex, grepl('ts ',ex$text))
         
         
-        for(e in 1:nrow(tmp.events)) {
+        for(i in 1:nrow(ex)) {
             
-            # Subset the EyeTracking data based on start/end
-            tmp.raw.trial = subset(tmp.eyetr, tmp.eyetr$time >= tmp.events$tStart[e] & tmp.eyetr$time <= tmp.events$tEnd[e])
+            filt = et$time >= ex$tStart[i] & et$time <= ex$tEnd[i]
             
-            tmp.raw.trial$tNo = tmp.events$tNo[e]
+            et$tNo[filt] = ex$tNo[i]
+            et$Condition[filt] = ex$Condition[i]
+            et$ssID[filt] = ssid
             
-            tmp.raw.trial$Condition = tmp.events$Condition[e]
-            
-            tmp.raw.trial$ssID = ssid
-            
-            tmp.df = rbind(tmp.raw.trial, tmp.df)
-
             
         }
         
-        # Add ssid
-        tmp.df$ssID = ssid
+        if (extract == 'all'){
+            # nothing to do
+        } else if (extract == 'trials'){
+            et = subset(et, is.na(et$tNo) == FALSE)
+        }
         
+        if (saveRdata == TRUE){
+            assign(sprintf("ss%s_tobiiData", ssid), et, envir = .GlobalEnv)
+            assign(sprintf("ss%s_eventsData", ssid), ex, envir = .GlobalEnv)
+        }
         
         # Save file
-        name = sprintf("ss%s_tobiiData", ssid)
-        write.csv(tmp.df, file = paste(name, "csv", sep = '.'))
-    
+        write.csv(et, file = sprintf("ss%s_tobiiData.csv", ssid), row.names = FALSE)
+        write.csv(ex, file = sprintf("ss%s_eventsData.csv", ssid), row.names = FALSE)
+        
+        # Progress
+        setTxtProgressBar(pb,f)
         
     }
     
-    message("Processing Completed.")
-
 }

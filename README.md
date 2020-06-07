@@ -82,6 +82,8 @@ if expInfo['Eye Tracker']:
 ```
 The `io.sendMessageEvent(text="tStart %i %i" %(trials.thisN, Condition))` sends a message to the IOHUB which will record trial number and condition for that trial, the `Condition` has to refer to a name in your design which specifies the condition. Note, that you can pass any information to the IOHUB using this method. 
 
+**Note:** Make sure, that the `trials.thisN` is unique for each trial across the entire experiment. This may not be the case when you for example use a xlsx file as a design and specify to repeat it more than once. 
+
 Then in the **End Routine** for the same code block add:
 
 ```python
@@ -96,16 +98,70 @@ Upon completion of the experiment you should see a new hdf5 file being added to 
 The `etDemo.psyexp` is a simple experiment in which subjects are asked to look at the dots, it has been designed with PsychoPy 1.82.01 (Mac).
 
 ## Processing the HDF5 file
-Thanks to the codes we were sending to the IOHUB on each trials we are able to epoch the eyetracking data based on related time vales. To process the data you need to have R installed on your machine, and have some very basic knowledge of R, you should know how to open an R script file, execute the code and then input one line of code into the R's console. 
+Thanks to the codes we were sending to the IOHUB on each trial, we are able to epoch the eye tracking data based on related time vales. To process the data you need to have R installed on your machine, and have some very basic knowledge of R. You should know how to open an R script file and execute code. Having [RStudio](https://rstudio.com/) installed would make this process much less painful. 
 
-All the R function needs is the location of hdf5 files; it will get all the trials epoched and save output into a csv file. The output file may be quite big as it collects all trails for each participant; if your tracker is sampling at 300Hz that means that you can expect around 300 lines per second of tracking. 
-
-The output data is a raw and unfiltered output which can be filtered by trail number and condition. You can also use the trial number to get all other trial info from the csv/xlsx PsychoPy output file. 
+All the R function needs is the location of hdf5 files; it will get all the trials epoched and save output into a csv file, optionally it will save all required data into your R environment. The output file may be quite big as it collects all trials for each participant; if your tracker is sampling at 300Hz that means that you can expect around 300 lines per second of tracking. 
 
 To process the HDF5 output files make sure that you follow the PsychoPy method described above, then:
-* Open the R file with R Studio.
-* Highlight all contents of that file and run it.
-* Then in Console: `tobii.extractor("~/path/to/all/HDF5files")` and press enter
-* Function will give you updates on which file it's currently processing and when it finishes. New csv files (one per subject) will be created in the same folder which you have specified above. 
+* Open a new R script file with [RStudio](https://rstudio.com/ then save it the same location that `tobii.extractor.R` and `getpk.R` files are. The latter file is a small script which automatically checks and downloads required packages. 
+
+* Insert the following into the code editor: 
+
+  ```R
+  source('tobii.extractor.R')
+  ```
+
+* Then in a separate lane, sepcify the location of files (the folder in which the hdf5 files are): 
+
+  ```R
+  dir = '~/path/to/your/HDF5files'
+  ```
+
+* In a next line insert: 
+
+  ```R
+  tobii.extractor(dir)
+  ```
+
+* The extracting function allows us to specify what we can extract from the hdf5 files:
+
+  * To only extract the data recorded during the trials use (if you want all the data, just omit that argument or set it to `'all'`):
+
+    ```R
+    tobii.extractor(dir, extract = 'trial')
+    ```
+
+  * To save data to your R environment, which would be helpfull if you plan on to work with that data later, use:
+
+    ```R
+    tobii.extractor(dir, saveRdata = TRUE)
+    ```
+
+  * Both arguments can be stacked:
+
+    ```R
+    tobii.extractor(dir, extract = 'trial', saveRdata = TRUE)
+    ```
+
+* Execute the entire code. It may take a while to extract all files and it may also take a lot of your disk space.
+
+* For each participant you will get two files, one contains raw eye-tracking data (file name contains string `tobiiData`) and second with all events that has been sent to IOHUB from PsychoPy (contains string `eventsData`). 
+
+* You can subset the csv data isolte tracking data for a particular trial (`tNo` column in the csv).
+
+# 2020 update:
+
+* Decided to move away from bioconductor's [rhdf](https://github.com/grimbough/rhdf5) package to [hdf5r](https://hhoeflin.github.io/hdf5r/) and streamline the hdf5 process. Could not have the time and will to adapt the code so it works with the hdf5 format that psychopy is producing after updating to a new version of the package. 
+* Some changes have been made to the code to make it more robust and streamline it so it's slightly easier to understand it, I hope. 
+
+
+
+### Dependencies:
+
+hdf5r
+
+
+
+
 
 
