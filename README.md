@@ -159,9 +159,3 @@ To process the HDF5 output files make sure that you follow the PsychoPy method d
 ### Dependencies:
 
 hdf5r
-
-
-
-
-
-
