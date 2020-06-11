@@ -1,5 +1,7 @@
 # How to use iohub data store with PsychoPy (Eye Tracking data)
 
+<a href="https://zenodo.org/badge/latestdoi/94903132"><img src="https://zenodo.org/badge/94903132.svg" alt="DOI"></a>
+
 IOHUB offers a quick and reliable high frequency data storage. Here, I show how to: (a) by using only few lines of added code create a working relationship between the IOHUB store and the PsychoPy and (b) how to extract this data to a csv file for further processing. 
 
 ## PsychoPy
